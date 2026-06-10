@@ -1,12 +1,15 @@
 import {
   _decorator, Camera, Canvas, Color, Component, Label, Layers,
-  Node, UITransform, Widget,
+  Node, UITransform, view, Widget,
 } from 'cc';
 import { CharacterAvatar } from './CharacterAvatar';
 import { CharacterController } from './CharacterController';
 import { GridFloor } from './GridFloor';
 
 const { ccclass } = _decorator;
+
+/** 固定视野高度（世界单位）：相机始终显示这么高的范围，宽度随窗口比例适配 */
+const VIEW_HEIGHT = 720;
 
 /**
  * 演示入口：场景中只挂这一个组件，运行时以代码构建
@@ -26,6 +29,8 @@ export class GameRoot extends Component {
     // 画布与相机
     const canvasNode = this.makeNode('Canvas', this.node);
     const canvas = canvasNode.addComponent(Canvas)!;
+    // 运行时创建的 Canvas 不做自动屏幕对齐（时机不可靠），尺寸由 syncViewport 显式驱动
+    canvas.alignCanvasWithScreen = false;
     this.canvasTf = canvasNode.getComponent(UITransform)!;
 
     const camNode = this.makeNode('UICamera', canvasNode);
@@ -56,16 +61,27 @@ export class GameRoot extends Component {
     this.statusLabel = this.makeCornerLabel(canvasNode, true);
     const hint = this.makeCornerLabel(canvasNode, false);
     hint.string = 'W A S D / 方向键 移动　Shift 按住奔跑　R 切换跑/走　X 打坐　Q / E 原地转向';
+
+    this.syncViewport();
+  }
+
+  /** 画布与相机按固定视野高度适配当前窗口比例 */
+  private syncViewport() {
+    const vs = view.getVisibleSize();
+    const aspect = vs.height > 0 ? vs.width / vs.height : 16 / 9;
+    const w = Math.round(VIEW_HEIGHT * aspect);
+    if (this.canvasTf.width !== w || this.canvasTf.height !== VIEW_HEIGHT) {
+      this.canvasTf.setContentSize(w, VIEW_HEIGHT);
+    }
+    this.camera.orthoHeight = VIEW_HEIGHT / 2;
   }
 
   lateUpdate() {
+    this.syncViewport();
+
     const p = this.charNode.position;
     this.world.setPosition(-p.x, -p.y);
-
-    const w = this.canvasTf.width;
-    const h = this.canvasTf.height;
-    this.grid.refresh(p.x, p.y, w, h);
-    this.camera.orthoHeight = h / 2;
+    this.grid.refresh(p.x, p.y, this.canvasTf.width, this.canvasTf.height);
 
     this.statusLabel.string = this.controller.statusText;
   }
