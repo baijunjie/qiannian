@@ -110,11 +110,15 @@ export class CharacterAvatar extends Component {
     const headY = 78 + bob + breath;
 
     // —— 发带飘带（最远层，先画）——
-    this.drawHairRibbon(headX, headY + 13, flow, phase);
+    this.drawHairRibbon(headX, headY + 11.5, flow, phase);
 
-    // —— 背负长剑：剑鞘（背向镜头时盖在袍上，其余画在身后）——
-    const swordBehind = fy <= 0;
-    if (swordBehind) this.drawSheath(lean, bob + breath);
+    // —— 背负长剑：面向镜头时整把剑画在最底层（被身体遮挡），
+    //    背向镜头时才压在袍上（见下方 swordFront 分支）——
+    const swordFront = fy > 0;
+    if (!swordFront) {
+      this.drawSheath(lean, bob + breath);
+      this.drawHilt(lean, bob + breath, flow, phase);
+    }
 
     // —— 双腿（袍裙下露出的小腿与靴）——
     const stepX = fx * legSwing;
@@ -176,14 +180,14 @@ export class CharacterAvatar extends Component {
     // —— 近侧手臂（宽袖）——
     this.drawSleeveArm(1, shoulderY, lean, armSwing, C_ROBE);
 
-    // —— 背面视角时剑鞘压在袍上 ——
-    if (!swordBehind) this.drawSheath(lean, bob + breath);
+    // —— 背面视角：剑背在身后，压在袍上 ——
+    if (swordFront) {
+      this.drawSheath(lean, bob + breath);
+      this.drawHilt(lean, bob + breath, flow, phase);
+    }
 
     // —— 头部 ——
     this.drawHead(headX, headY, false);
-
-    // —— 剑柄（面向镜头时从肩后露出，最后画保证可见）——
-    this.drawHilt(lean, bob + breath, flow, phase);
   }
 
   /** 宽袖手臂。side: 1 近侧(右) / -1 远侧(左) */
@@ -371,14 +375,14 @@ export class CharacterAvatar extends Component {
       g.rect(x - 2.5, y - 11, 5, 4);
       g.fill();
     }
-    // 发髻与金簪
+    // 发髻与金簪（贴在头顶）
     g.fillColor = C_HAIR;
-    g.circle(x, y + 13, 4.2);
+    g.circle(x, y + 11, 4.2);
     g.fill();
     g.strokeColor = C_GOLD;
     g.lineWidth = 1.6;
-    g.moveTo(x - 6.5, y + 14);
-    g.lineTo(x + 6.5, y + 12.5);
+    g.moveTo(x - 5.5, y + 11.8);
+    g.lineTo(x + 5.5, y + 10.5);
     g.stroke();
 
     if (fy > 0) return;
@@ -433,7 +437,7 @@ export class CharacterAvatar extends Component {
     // 发带（静坐垂落轻摆）
     const headX = fx * 2.5;
     const headY = 58 + breath;
-    this.drawHairRibbon(headX, headY + 13, 0, 0);
+    this.drawHairRibbon(headX, headY + 11.5, 0, 0);
 
     // 铺地袍摆
     g.fillColor = C_ROBE_DARK;
