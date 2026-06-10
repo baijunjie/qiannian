@@ -1,0 +1,10 @@
+# Cocos Creator 生成目录
+library/
+temp/
+local/
+build/
+profiles/
+node_modules/
+
+# 原生平台构建产物（按需调整：定制原生代码时需要纳入版本管理）
+native/

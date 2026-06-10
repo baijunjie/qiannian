@@ -1,0 +1,9 @@
+{
+  "name": "qiannian-client",
+  "version": "0.1.0",
+  "description": "千年 · Cocos Creator 客户端",
+  "type": "2d",
+  "creator": {
+    "version": "3.8.8"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "cunzhang": {
+    "id": "cunzhang", "name": "村长", "role": "quest",
+    "greeting": "老朽是玄菟村村长。如今世道不太平，少侠行走江湖，千万小心。"
+  },
+  "tiejiang": {
+    "id": "tiejiang", "name": "王铁匠", "role": "shop",
+    "greeting": "客官请看，小店的兵刃甲胄，都是上好的货色！",
+    "shop": ["wood_sword", "chai_dao", "tie_quan", "iron_sword", "cloth", "leather", "iron_armor"],
+    "shopTitle": "王记铁铺"
+  },
+  "dafu": {
+    "id": "dafu", "name": "李大夫", "role": "shop",
+    "greeting": "悬壶济世，治病救人。客官是抓药，还是疗伤？",
+    "shop": ["potion_s", "potion_l", "mp_pill"],
+    "shopTitle": "回春药铺",
+    "canHeal": true
+  }
+}

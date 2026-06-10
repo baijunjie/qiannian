@@ -1,0 +1,20 @@
+{
+  "q_wolf": {
+    "id": "q_wolf", "name": "狼患",
+    "giver": "cunzhang", "targetMonster": "wolf", "targetCount": 5,
+    "desc": "村东荒野的野狼袭击了进山的村民，村长请你猎杀 5 头野狼。",
+    "accept": "近来村东荒野狼群肆虐，已有几位乡亲被咬伤。少侠若肯出手猎杀五头野狼，老朽必有重谢！",
+    "progress": "狼群可还猖獗？务必多加小心。",
+    "complete": "少侠真乃神人也！这是谢礼，请务必收下。",
+    "reward": { "gold": 500, "exp": 200, "items": [{ "id": "potion_s", "n": 5 }] }
+  },
+  "q_boss": {
+    "id": "q_boss", "name": "剿灭山贼",
+    "giver": "cunzhang", "targetMonster": "bandit_boss", "targetCount": 1, "require": "q_wolf",
+    "desc": "盘踞在荒野东北山寨的山贼头目作恶多端，村长悬赏取其首级。",
+    "accept": "荒野东北有伙山贼占山为王，劫掠过往商旅。山贼头目武艺高强，少侠若能除掉他，便是为民除害，赏银两千两！",
+    "progress": "山贼头目就在荒野东北的山寨中，切莫轻敌。",
+    "complete": "山贼授首，商路重开，少侠大恩大德，玄菟村永世不忘！",
+    "reward": { "gold": 2000, "exp": 1000, "items": [{ "id": "potion_l", "n": 5 }] }
+  }
+}

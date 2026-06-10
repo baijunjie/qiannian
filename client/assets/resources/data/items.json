@@ -1,0 +1,16 @@
+{
+  "wood_sword":   { "id": "wood_sword",   "name": "木剑",     "type": "weapon", "kind": "sword", "atk": 8,  "price": 100,  "desc": "新手习剑所用的木剑。" },
+  "iron_sword":   { "id": "iron_sword",   "name": "铁剑",     "type": "weapon", "kind": "sword", "atk": 20, "price": 800,  "desc": "精铁打造，锋利耐用。" },
+  "chai_dao":     { "id": "chai_dao",     "name": "柴刀",     "type": "weapon", "kind": "blade", "atk": 14, "price": 400,  "desc": "樵夫砍柴的厚背刀。" },
+  "qinglong_dao": { "id": "qinglong_dao", "name": "青龙刀",   "type": "weapon", "kind": "blade", "atk": 32, "price": 3000, "desc": "刀身泛青光，削铁如泥。" },
+  "tie_quan":     { "id": "tie_quan",     "name": "铁拳套",   "type": "weapon", "kind": "fist",  "atk": 12, "price": 600,  "desc": "套于拳上，拳劲倍增。" },
+  "cloth":        { "id": "cloth",        "name": "布衣",     "type": "armor", "def": 5,  "price": 80,   "desc": "粗布缝制的衣衫。" },
+  "leather":      { "id": "leather",      "name": "皮甲",     "type": "armor", "def": 12, "price": 500,  "desc": "兽皮硝制的轻甲。" },
+  "iron_armor":   { "id": "iron_armor",   "name": "铁甲",     "type": "armor", "def": 25, "price": 2500, "desc": "铁片层叠的重甲。" },
+  "potion_s":     { "id": "potion_s",     "name": "金创药",   "type": "potion", "heal": 80,  "price": 20, "stack": true, "desc": "外敷内服皆可，恢复 80 点体力。" },
+  "potion_l":     { "id": "potion_l",     "name": "大金创药", "type": "potion", "heal": 250, "price": 60, "stack": true, "desc": "药效极佳，恢复 250 点体力。" },
+  "mp_pill":      { "id": "mp_pill",      "name": "回气丹",   "type": "potion", "mp": 100,   "price": 30, "stack": true, "desc": "凝神聚气，恢复 100 点内力。" },
+  "lupi":         { "id": "lupi",   "name": "狼皮", "type": "material", "price": 30, "stack": true, "desc": "完整的狼皮，可卖给商人。" },
+  "lurong":       { "id": "lurong", "name": "鹿茸", "type": "material", "price": 20, "stack": true, "desc": "珍贵的药材。" },
+  "shedan":       { "id": "shedan", "name": "蛇胆", "type": "material", "price": 50, "stack": true, "desc": "蟒蛇的胆，大补之物。" }
+}

@@ -1,0 +1,27 @@
+{
+  "deer": {
+    "id": "deer", "name": "野鹿", "hp": 40, "atk": 5, "def": 1, "exp": 12, "gold": [2, 6],
+    "aggressive": false, "speed": 2.2, "atkCd": 1500, "aggroR": 0, "kind": "deer",
+    "drops": [{ "item": "lurong", "chance": 0.35 }]
+  },
+  "wolf": {
+    "id": "wolf", "name": "野狼", "hp": 80, "atk": 13, "def": 3, "exp": 25, "gold": [5, 12],
+    "aggressive": true, "speed": 3.0, "atkCd": 1200, "aggroR": 4.5, "kind": "wolf",
+    "drops": [{ "item": "lupi", "chance": 0.4 }, { "item": "potion_s", "chance": 0.12 }]
+  },
+  "snake": {
+    "id": "snake", "name": "蟒蛇", "hp": 120, "atk": 18, "def": 5, "exp": 45, "gold": [8, 18],
+    "aggressive": true, "speed": 1.8, "atkCd": 1400, "aggroR": 3.5, "kind": "snake",
+    "drops": [{ "item": "shedan", "chance": 0.35 }, { "item": "mp_pill", "chance": 0.1 }]
+  },
+  "bandit": {
+    "id": "bandit", "name": "山贼", "hp": 180, "atk": 24, "def": 8, "exp": 80, "gold": [15, 40],
+    "aggressive": true, "speed": 2.6, "atkCd": 1100, "aggroR": 5, "kind": "bandit",
+    "drops": [{ "item": "potion_l", "chance": 0.15 }, { "item": "chai_dao", "chance": 0.05 }, { "item": "cloth", "chance": 0.08 }]
+  },
+  "bandit_boss": {
+    "id": "bandit_boss", "name": "山贼头目", "hp": 700, "atk": 38, "def": 13, "exp": 450, "gold": [150, 350],
+    "aggressive": true, "speed": 2.4, "atkCd": 1000, "aggroR": 6, "kind": "boss", "boss": true,
+    "drops": [{ "item": "qinglong_dao", "chance": 0.5 }, { "item": "iron_armor", "chance": 0.35 }, { "item": "potion_l", "chance": 0.8 }]
+  }
+}
