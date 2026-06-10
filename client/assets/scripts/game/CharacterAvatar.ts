@@ -180,14 +180,14 @@ export class CharacterAvatar extends Component {
     // —— 近侧手臂（宽袖）——
     this.drawSleeveArm(1, shoulderY, lean, armSwing, C_ROBE);
 
-    // —— 背面视角：剑背在身后，压在袍上 ——
+    // —— 头部 ——
+    this.drawHead(headX, headY, false);
+
+    // —— 背面视角：剑离镜头最近，最后画（压在袍与后脑上）——
     if (swordFront) {
       this.drawSheath(lean, bob + breath);
       this.drawHilt(lean, bob + breath, flow, phase);
     }
-
-    // —— 头部 ——
-    this.drawHead(headX, headY, false);
   }
 
   /** 宽袖手臂。side: 1 近侧(右) / -1 远侧(左) */
