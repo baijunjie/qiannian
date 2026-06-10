@@ -1,20 +1,32 @@
-# 千年 · 网页版演示
+# 千年
 
-一个致敬经典武侠网游《千年》的网页单机演示，使用原生 HTML5 Canvas + JavaScript 实现，无任何框架和构建工具，打开即玩。
+一个致敬经典武侠网游《千年》的游戏项目。
 
 > 武林千年，江湖路远。
 
-## 快速开始
+## 仓库结构
+
+```
+qiannian/
+├── client/      # Cocos Creator 3.8 正式客户端（开发中）
+├── prototype/   # 纯 JS 玩法原型（可直接游玩的单机演示）
+└── docs/        # 开发文档（环境搭建见 docs/SETUP.md）
+```
+
+- **正式版**基于 [Cocos Creator](https://www.cocos.com/creator) 开发，目标平台为 Web 与 iOS / Android 原生 App，环境搭建与工程约定见 [docs/SETUP.md](docs/SETUP.md)
+- **原型版**用于快速验证玩法与数值，正式版的玩法迁移以它为准
+
+## 运行原型演示
 
 **方式一：直接打开**
 
-双击 `index.html` 即可在浏览器中运行。
+双击 `prototype/index.html` 即可在浏览器中运行。
 
 **方式二：本地服务器（推荐）**
 
 ```bash
 python3 -m http.server 8765
-# 然后访问 http://localhost:8765
+# 然后访问 http://localhost:8765/prototype/
 ```
 
 推荐使用 Chrome / Edge / Safari 等现代浏览器。
@@ -83,10 +95,10 @@ python3 -m http.server 8765
 - 16 种物品：武器 / 防具 / 药品 / 材料，支持装备、使用、买卖、掉落拾取
 - 进度自动保存到浏览器 localStorage（每 30 秒及关闭页面时），标题画面可继续游戏
 
-## 项目结构
+## 原型代码结构
 
 ```
-qiannian/
+prototype/
 ├── index.html          # 页面骨架与 UI 布局
 ├── css/
 │   └── style.css       # 全部界面样式（古风暗金主题）
@@ -99,16 +111,16 @@ qiannian/
     └── game.js         # 主循环、输入、战斗、任务、存档
 ```
 
-脚本按上述顺序以普通 `<script>` 标签加载（非 ES Module），因此 `file://` 协议下也能直接运行。
+脚本以普通 `<script>` 标签加载（非 ES Module），因此 `file://` 协议下也能直接运行。
 
-## 当前限制
+原型的已知限制：单机、无联网；标签页切到后台时游戏暂停（`requestAnimationFrame` 节流），回到前台自动继续。
 
-- 单机演示，暂无联网功能
-- 标签页切到后台时游戏暂停（`requestAnimationFrame` 节流），回到前台自动继续
+## 路线图
 
-## 后续计划
-
+- [x] 玩法原型（纯 JS 单机演示）
+- [ ] 迁移到 Cocos Creator：场景搭建、玩法移植（`client/`，进行中）
 - [ ] 更多地图、怪物与武功招式书
 - [ ] 善恶值与 PK 系统
 - [ ] 雪碧图美术替换程序化绘图
+- [ ] 发布 Web 版与 iOS / Android App
 - [ ] 联网架构（服务端权威模型）
