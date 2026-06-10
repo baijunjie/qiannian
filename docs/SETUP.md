@@ -55,5 +55,4 @@ client/
 
 ## 5. 参考
 
-- 原型版（纯 JS 实现的玩法演示）：`prototype/index.html`，数值与玩法迁移以它为准
 - Cocos Creator 3.8 文档：<https://docs.cocos.com/creator/3.8/manual/zh/>
