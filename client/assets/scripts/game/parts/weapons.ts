@@ -43,9 +43,19 @@ function drawSlashFx(g: Graphics, pose: Pose) {
   }
 }
 
-/** 持械臂（攻击时由武器画笔接管近侧手臂） */
-function drawWeaponArm(g: Graphics, pose: Pose, s: AvatarStyle) {
+/** 双手握柄：远手在柄尾、近手在柄前（攻击时由武器画笔接管双臂） */
+function drawWeaponArms(g: Graphics, pose: Pose, s: AvatarStyle) {
   const atk = pose.attack!;
+  const bdx = Math.cos(atk.ang);
+  const bdy = Math.sin(atk.ang) * 0.55;
+  // 远手握在柄尾（先画，被近臂压住一半）
+  sleeveTo(
+    g, s,
+    -9 + pose.lean, pose.shoulderY,
+    atk.handX - bdx * 4, atk.handY - bdy * 4,
+    s.c.robeDark,
+  );
+  // 近手握在柄前
   sleeveTo(g, s, 9 + pose.lean, pose.shoulderY, atk.handX, atk.handY, s.c.robe);
 }
 
@@ -148,7 +158,7 @@ function drawLapWeapon(g: Graphics, pose: Pose, s: AvatarStyle, wide: boolean) {
 function drawJianActive(g: Graphics, pose: Pose, s: AvatarStyle) {
   const atk = pose.attack!;
   drawSlashFx(g, pose);
-  drawWeaponArm(g, pose, s);
+  drawWeaponArms(g, pose, s);
   const { handX: hx, handY: hy, ang } = atk;
   const bdx = Math.cos(ang);
   const bdy = Math.sin(ang) * 0.55;
@@ -190,7 +200,7 @@ export const weapon_jian: PartPainter = {
 function drawDaoActive(g: Graphics, pose: Pose, s: AvatarStyle) {
   const atk = pose.attack!;
   drawSlashFx(g, pose);
-  drawWeaponArm(g, pose, s);
+  drawWeaponArms(g, pose, s);
   const { handX: hx, handY: hy, ang } = atk;
   const bdx = Math.cos(ang);
   const bdy = Math.sin(ang) * 0.55;
@@ -247,6 +257,14 @@ function drawFistActive(g: Graphics, pose: Pose, s: AvatarStyle) {
     g.circle(hx + Math.cos(theta) * 6, hy + Math.sin(theta) * 6 * 0.55, 4 + p * 10);
     g.stroke();
   }
+  // 副手收于胸前护身（拳架）
+  sleeveTo(
+    g, s,
+    -9 + pose.lean, pose.shoulderY,
+    -4 + pose.lean - pose.fx * 4, pose.shoulderY - 14,
+    s.c.robeDark,
+  );
+  // 出拳臂
   sleeveTo(g, s, 9 + pose.lean, pose.shoulderY, hx, hy, s.c.robe);
   // 攥起的拳
   g.fillColor = s.c.skin;

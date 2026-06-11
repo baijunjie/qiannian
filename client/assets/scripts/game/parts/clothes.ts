@@ -106,9 +106,10 @@ export const clothes_robe: PartPainter = {
     g.stroke();
   },
 
-  /* —— 远侧手臂 —— */
+  /* —— 远侧手臂（攻击时由武器画笔负责：双手握柄/拳架）—— */
   armFar(g, pose, s) {
     const { shoulderY, lean } = pose;
+    if (pose.attack) return;
     if (pose.sitting) {
       // 左袖收于身前
       g.fillColor = s.c.robe;
