@@ -65,8 +65,10 @@ export class SpriteAvatar extends Component {
   private fxNode!: Node;
   private fxG!: Graphics;
   private sprites = {} as Record<LayerKey, Sprite>;
-  private textures: Record<LayerKey, Texture2D | null> = { armor: null, head: null, weapon: null };
+  /** 当前生效的"图名+纹理"原子配对：换装加载期间保持旧配对，加载完成后整体切换 */
+  private loaded: Record<LayerKey, { sheet: string; tex: Texture2D } | null> = { armor: null, head: null, weapon: null };
   private wanted: Record<LayerKey, string> = { armor: '', head: '', weapon: '' };
+  private loadingSheet: Record<LayerKey, string> = { armor: '', head: '', weapon: '' };
   private texCache = new Map<string, Texture2D>();
   /** 帧缓存：sheet:row:col → SpriteFrame（整体替换 spriteFrame 才能可靠触发重绘） */
   private sfCache = new Map<string, SpriteFrame>();
@@ -91,6 +93,8 @@ export class SpriteAvatar extends Component {
     this.view.setScale(SCALE, SCALE, 1);
     this.node.addChild(this.view);
     for (const key of LAYER_KEYS) this.sprites[key] = this.makeLayer(key);
+    // setAppearance 可能早于 onLoad 被调用，此处补齐指派
+    for (const key of LAYER_KEYS) this.assign(key, this.wanted[key]);
   }
 
   onEnable() {
@@ -126,32 +130,33 @@ export class SpriteAvatar extends Component {
 
   private assign(key: LayerKey, sheet: string) {
     this.wanted[key] = sheet;
-    const sp = this.sprites[key];
-    if (!sp) return; // onLoad 之前调用时，等 update 自然恢复
+    if (!this.sprites[key]) return; // onLoad 之前调用，onLoad 末尾补齐
     if (!sheet) {
-      sp.node.active = false;
-      this.textures[key] = null;
+      this.loaded[key] = null;
       return;
     }
-    sp.node.active = true;
+    if (this.loaded[key] && this.loaded[key]!.sheet === sheet) return; // 已是目标
     const cached = this.texCache.get(sheet);
     if (cached) {
-      this.applyTexture(key, sheet, cached);
+      this.loaded[key] = { sheet, tex: cached };
+      this.applyFrame();
       return;
     }
+    if (this.loadingSheet[key] === sheet) return; // 已在加载，避免重复请求
+    this.loadingSheet[key] = sheet;
     resources.load(`hero/${sheet}/texture`, Texture2D, (err, tex) => {
+      if (this.loadingSheet[key] === sheet) this.loadingSheet[key] = '';
       if (err || !tex) {
         console.warn(`[SpriteAvatar] 贴图加载失败 hero/${sheet}:`, err);
         return;
       }
       this.texCache.set(sheet, tex);
-      if (this.wanted[key] === sheet) this.applyTexture(key, sheet, tex);
+      // 回调时仍是想要的目标才生效（期间可能又切换了）
+      if (this.wanted[key] === sheet) {
+        this.loaded[key] = { sheet, tex };
+        this.applyFrame();
+      }
     });
-  }
-
-  private applyTexture(key: LayerKey, sheet: string, tex: Texture2D) {
-    this.textures[key] = tex;
-    this.applyFrame();
   }
 
   /** IAvatarView */
@@ -163,10 +168,6 @@ export class SpriteAvatar extends Component {
   }
 
   update(dt: number) {
-    // setAppearance 早于 onLoad 调用时，补一次指派
-    for (const key of LAYER_KEYS) {
-      if (this.wanted[key] && !this.textures[key]) this.assign(key, this.wanted[key]);
-    }
     this.time += dt;
     this.applyFrame();
     this.drawFx();
@@ -205,10 +206,15 @@ export class SpriteAvatar extends Component {
     const row = ROW_OF_DIR[this.dir];
     const col = this.frameCol();
     for (const key of LAYER_KEYS) {
-      const tex = this.textures[key];
-      if (!tex) continue;
-      const sf = this.frameFor(this.wanted[key], tex, row, col);
+      const pair = this.loaded[key];
       const sp = this.sprites[key];
+      if (!pair) {
+        sp.node.active = false;
+        continue;
+      }
+      sp.node.active = true;
+      // 帧缓存键与纹理来自同一配对，不会出现"新图名旧纹理"的污染
+      const sf = this.frameFor(pair.sheet, pair.tex, row, col);
       if (sp.spriteFrame !== sf) sp.spriteFrame = sf;
     }
     // 衣装着色（素材重复时用 tint 区分；tint 实例稳定，引用比较即可）
