@@ -4,7 +4,8 @@ import {
   Dir8, DIR_NAMES, dirFromVector, isFacingNear,
   RUN_SPEED, STATE_NAMES, TURN_RATE, turnStep, WALK_SPEED,
 } from '../core/character';
-import { CharacterAvatar } from './CharacterAvatar';
+import { Action } from '../core/rig';
+import { AvatarRenderer } from './AvatarRenderer';
 
 const { ccclass } = _decorator;
 
@@ -18,7 +19,7 @@ const { ccclass } = _decorator;
  */
 @ccclass('CharacterController')
 export class CharacterController extends Component {
-  private avatar!: CharacterAvatar;
+  private avatar!: AvatarRenderer;
   private pressed = new Set<KeyCode>();
 
   private facing: Dir8 = Dir8.S;
@@ -36,7 +37,7 @@ export class CharacterController extends Component {
   private tmpPos = new Vec3();
 
   onLoad() {
-    this.avatar = this.getComponent(CharacterAvatar)!;
+    this.avatar = this.getComponent(AvatarRenderer)!;
     input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
     input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
   }
@@ -141,8 +142,8 @@ export class CharacterController extends Component {
         }
       }
       if (this.attacking) {
-        this.avatar.setPose(this.facing, CharState.Attack);
-        this.avatar.setAttackAnim(this.comboStep, Math.min(1, this.attackTime / ATTACK_DUR));
+        const action = ('attack' + (this.comboStep + 1)) as Action;
+        this.avatar.setPose(action, this.facing, Math.min(1, this.attackTime / ATTACK_DUR));
         return;
       }
     }
@@ -181,6 +182,9 @@ export class CharacterController extends Component {
       }
     }
 
-    this.avatar.setPose(this.facing, this.state);
+    const action: Action = this.state === CharState.Walk ? 'walk'
+      : this.state === CharState.Run ? 'run'
+        : this.state === CharState.Sit ? 'sit' : 'idle';
+    this.avatar.setPose(action, this.facing);
   }
 }

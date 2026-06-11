@@ -1,8 +1,9 @@
 import {
-  _decorator, Camera, Canvas, Color, Component, Label, Layers,
-  Node, UITransform, view, Widget,
+  _decorator, Camera, Canvas, Color, Component, EventKeyboard, Input, input,
+  KeyCode, Label, Layers, Node, UITransform, view, Widget,
 } from 'cc';
-import { CharacterAvatar } from './CharacterAvatar';
+import { HAIR_STYLES, makeAppearance, OUTFITS, WEAPONS } from '../core/appearance';
+import { AvatarRenderer } from './AvatarRenderer';
 import { CharacterController } from './CharacterController';
 import { GridFloor } from './GridFloor';
 
@@ -22,8 +23,14 @@ export class GameRoot extends Component {
   private world!: Node;
   private charNode!: Node;
   private controller!: CharacterController;
+  private renderer!: AvatarRenderer;
   private grid!: GridFloor;
   private statusLabel!: Label;
+
+  // 外观索引（1/2/3 键循环切换）
+  private hairIdx = 0;
+  private outfitIdx = 0;
+  private weaponIdx = 0;
 
   onLoad() {
     // 画布与相机
@@ -54,15 +61,37 @@ export class GameRoot extends Component {
 
     // 角色
     this.charNode = this.makeNode('Player', this.world);
-    this.charNode.addComponent(CharacterAvatar);
+    this.renderer = this.charNode.addComponent(AvatarRenderer)!;
     this.controller = this.charNode.addComponent(CharacterController)!;
+    this.renderer.setAppearance(makeAppearance(this.hairIdx, this.outfitIdx, this.weaponIdx));
 
     // 状态与操作提示
     this.statusLabel = this.makeCornerLabel(canvasNode, true);
     const hint = this.makeCornerLabel(canvasNode, false);
-    hint.string = 'W A S D / 方向键 移动　Shift 奔跑　R 跑/走　J 攻击（连按三段连击）　X 打坐　Q / E 原地转向';
+    hint.string = 'W A S D / 方向键 移动　Shift 奔跑　R 跑/走　J 攻击（三段连击）　X 打坐　Q / E 原地转向\n'
+      + '换装：1 发型　2 衣装　3 武器';
 
+    input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
     this.syncViewport();
+  }
+
+  onDestroy() {
+    input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
+  }
+
+  private onKeyDown(e: EventKeyboard) {
+    if (e.keyCode === KeyCode.DIGIT_1) this.hairIdx++;
+    else if (e.keyCode === KeyCode.DIGIT_2) this.outfitIdx++;
+    else if (e.keyCode === KeyCode.DIGIT_3) this.weaponIdx++;
+    else return;
+    this.renderer.setAppearance(makeAppearance(this.hairIdx, this.outfitIdx, this.weaponIdx));
+  }
+
+  private get appearanceText(): string {
+    const hair = HAIR_STYLES[this.hairIdx % HAIR_STYLES.length].name;
+    const outfit = OUTFITS[this.outfitIdx % OUTFITS.length].name;
+    const weapon = WEAPONS[this.weaponIdx % WEAPONS.length].name;
+    return `外观：${hair} · ${outfit} · ${weapon}`;
   }
 
   /** 画布与相机按固定视野高度适配当前窗口比例 */
@@ -83,7 +112,7 @@ export class GameRoot extends Component {
     this.world.setPosition(-p.x, -p.y);
     this.grid.refresh(p.x, p.y, this.canvasTf.width, this.canvasTf.height);
 
-    this.statusLabel.string = this.controller.statusText;
+    this.statusLabel.string = this.controller.statusText + '\n' + this.appearanceText;
   }
 
   private makeNode(name: string, parent: Node): Node {
