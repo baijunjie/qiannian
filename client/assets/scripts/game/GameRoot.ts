@@ -60,7 +60,7 @@ export class GameRoot extends Component {
     // 状态与操作提示
     this.statusLabel = this.makeCornerLabel(canvasNode, true);
     const hint = this.makeCornerLabel(canvasNode, false);
-    hint.string = 'W A S D / 方向键 移动　Shift 按住奔跑　R 切换跑/走　X 打坐　Q / E 原地转向';
+    hint.string = 'W A S D / 方向键 移动　Shift 奔跑　R 跑/走　J 攻击（连按三段连击）　X 打坐　Q / E 原地转向';
 
     this.syncViewport();
   }

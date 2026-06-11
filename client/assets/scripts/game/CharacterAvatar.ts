@@ -17,6 +17,8 @@ const C_EYE = new Color(20, 16, 12, 255);
 const C_SHADOW = new Color(0, 0, 0, 70);
 const C_ARROW = new Color(140, 220, 255, 130);
 const C_AURA = new Color(126, 232, 168, 0);
+const C_BLADE = new Color(214, 222, 232, 255);     // 出鞘剑身
+const C_SLASH = new Color(255, 255, 255, 0);       // 刀光（alpha 动态）
 
 /**
  * 程序化绘制的武侠角色：八方向身位 + 站立/走路/奔跑/打坐。
@@ -35,6 +37,16 @@ export class CharacterAvatar extends Component {
   private fy = -1;
   private t = 0;
   private lean = 0;
+
+  // 攻击动画参数（由控制器每帧驱动）
+  private attackStep = 0;
+  private attackProgress = 0;
+
+  /** 攻击中由控制器传入：第几段连击 + 本段进度 0~1 */
+  setAttackAnim(step: number, progress: number) {
+    this.attackStep = step;
+    this.attackProgress = progress;
+  }
 
   onLoad() {
     this.g = this.getComponent(Graphics) ?? this.addComponent(Graphics)!;
@@ -67,6 +79,7 @@ export class CharacterAvatar extends Component {
     g.fill();
 
     if (this.state === CharState.Sit) this.drawSitting();
+    else if (this.state === CharState.Attack) this.drawAttack();
     else this.drawStanding();
 
     this.drawFacingArrow();
@@ -192,15 +205,19 @@ export class CharacterAvatar extends Component {
 
   /** 宽袖手臂。side: 1 近侧(右) / -1 远侧(左) */
   private drawSleeveArm(side: number, shoulderY: number, lean: number, armSwing: number, color: Color) {
-    const { g, fx, fy } = this;
+    const { fx, fy } = this;
     const sx = side * 9 + lean;
     const sy = shoulderY;
     // 手的位置：垂在腰侧，移动时沿行进方向前后摆
     const swing = armSwing * side;
     const ex = side * 13 + lean + fx * swing * 0.8;
     const ey = shoulderY - 24 + fy * swing * 0.3;
+    this.drawSleeveTo(sx, sy, ex, ey, color);
+  }
 
-    // 袖身（肩窄、袖口宽的喇叭形）
+  /** 从肩点画一条喇叭袖到指定手位，并画手 */
+  private drawSleeveTo(sx: number, sy: number, ex: number, ey: number, color: Color) {
+    const g = this.g;
     const dx = ex - sx;
     const dy = ey - sy;
     const len = Math.hypot(dx, dy) || 1;
@@ -415,6 +432,139 @@ export class CharacterAvatar extends Component {
     } else {
       drawEye(faceX + fx * 4.5); // 纯侧面单眼
     }
+  }
+
+  /* ================= 攻击（三段连击：横斩/回斩/突刺） ================= */
+
+  private drawAttack() {
+    const { g, fx, fy } = this;
+    const p = this.attackProgress;
+    const step = this.attackStep;
+    const lean = fx * 4;
+    this.lean = lean;
+    const flow = 6 + 14 * (1 - p);
+
+    const beltY = 42;
+    const shoulderY = 64;
+    const headX = fx * 4 + lean;
+    const headY = 78;
+
+    // 发带（出招甩动）
+    this.drawHairRibbon(headX, headY + 11.5, flow, p * 6);
+
+    const swordFront = fy > 0;
+    if (!swordFront) this.drawSheath(lean, 0);
+
+    // 弓步双腿（出招站稳）
+    g.strokeColor = C_BOOT;
+    g.lineWidth = 6;
+    g.moveTo(-5, beltY - 20);
+    g.lineTo(-7 - fx * 2.5, 1);
+    g.stroke();
+    g.moveTo(5, beltY - 20);
+    g.lineTo(7 + fx * 2.5, 1);
+    g.stroke();
+
+    // 袍裙：出招瞬间向反方向甩动
+    const sway = -fx * 4 * (1 - p);
+    g.fillColor = C_ROBE_DARK;
+    g.moveTo(-11 + lean * 0.3, beltY);
+    g.lineTo(11 + lean * 0.3, beltY);
+    g.lineTo(17 + sway, 15);
+    g.lineTo(-17 + sway, 15);
+    g.close();
+    g.fill();
+    g.strokeColor = C_TRIM;
+    g.lineWidth = 2;
+    g.moveTo(-17 + sway, 15);
+    g.lineTo(17 + sway, 15);
+    g.stroke();
+
+    // 远侧手臂后摆平衡
+    this.drawSleeveArm(-1, shoulderY, lean, -9, C_ROBE_DARK);
+
+    // 上身 / 交领 / 腰带
+    g.fillColor = C_ROBE;
+    g.moveTo(-11 + lean * 0.4, beltY - 1);
+    g.lineTo(11 + lean * 0.4, beltY - 1);
+    g.lineTo(9 + lean, shoulderY + 2);
+    g.lineTo(-9 + lean, shoulderY + 2);
+    g.close();
+    g.fill();
+    this.drawCollar(lean, beltY, shoulderY);
+    this.drawSash(lean, beltY, flow, p * 6);
+
+    // 头
+    this.drawHead(headX, headY, false);
+
+    // 背面视角：空鞘压在袍与后脑上（剑已在手）
+    if (swordFront) this.drawSheath(lean, 0);
+
+    // —— 持剑手与剑（最后画，保证挥击可见）——
+    const theta = Math.atan2(fy * 0.55, fx);
+    const ease = 1 - (1 - p) * (1 - p);
+    let ang = theta;
+    let reach = 14;
+    if (step === 0) ang = theta + 1.3 - ease * 2.1;       // 横斩：顺势下劈
+    else if (step === 1) ang = theta - 1.0 + ease * 2.1;  // 回斩：反手撩起
+    else reach = 14 + Math.sin(p * Math.PI) * 16;         // 突刺：直进直出
+
+    const px = lean * 0.5 + fx * 3;
+    const py = 46;
+    const hx = px + Math.cos(ang) * reach;
+    const hy = py + Math.sin(ang) * reach * 0.55;
+
+    // 刀光（前半程渐隐）
+    if (p < 0.6) {
+      if (step < 2) {
+        const trail = step === 0 ? 0.7 : -0.7;
+        C_SLASH.a = Math.round((1 - p / 0.6) * 110);
+        g.fillColor = C_SLASH;
+        g.moveTo(px, py);
+        const R = 42;
+        for (let k = 0; k <= 6; k++) {
+          const a2 = ang + trail * (1 - k / 6);
+          g.lineTo(px + Math.cos(a2) * R, py + Math.sin(a2) * R * 0.55);
+        }
+        g.close();
+        g.fill();
+      } else {
+        // 突刺残影线
+        C_SLASH.a = Math.round((1 - p / 0.6) * 150);
+        g.strokeColor = C_SLASH;
+        g.lineWidth = 1.6;
+        const nx = -Math.sin(theta) * 4;
+        const ny = Math.cos(theta) * 4 * 0.55;
+        for (const s of [-1, 1]) {
+          g.moveTo(px + nx * s + Math.cos(theta) * 10, py + ny * s + Math.sin(theta) * 10 * 0.55);
+          g.lineTo(px + nx * s + Math.cos(theta) * 40, py + ny * s + Math.sin(theta) * 40 * 0.55);
+          g.stroke();
+        }
+      }
+    }
+
+    // 持剑臂
+    this.drawSleeveTo(9 + lean, shoulderY, hx, hy, C_ROBE);
+    // 剑：柄尾 → 护手 → 剑身 → 剑尖
+    const bdx = Math.cos(ang);
+    const bdy = Math.sin(ang) * 0.55;
+    g.strokeColor = C_SASH;
+    g.lineWidth = 2.5;
+    g.moveTo(hx, hy);
+    g.lineTo(hx - bdx * 4, hy - bdy * 4);
+    g.stroke();
+    g.fillColor = C_GOLD;
+    g.ellipse(hx + bdx * 3, hy + bdy * 3, 2.2, 1.6);
+    g.fill();
+    g.strokeColor = C_BLADE;
+    g.lineWidth = 3;
+    g.moveTo(hx + bdx * 5, hy + bdy * 5);
+    g.lineTo(hx + bdx * 30, hy + bdy * 30);
+    g.stroke();
+    g.lineWidth = 1.5;
+    g.moveTo(hx + bdx * 30, hy + bdy * 30);
+    g.lineTo(hx + bdx * 34, hy + bdy * 34);
+    g.stroke();
   }
 
   /* ================= 打坐 ================= */

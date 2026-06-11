@@ -1,6 +1,7 @@
 import { _decorator, Component, EventKeyboard, Input, input, KeyCode, Vec3 } from 'cc';
 import {
-  CharState, Dir8, DIR_NAMES, dirFromVector, isFacingNear,
+  ATTACK_DUR, CharState, COMBO_MAX, COMBO_NAMES, COMBO_RESET,
+  Dir8, DIR_NAMES, dirFromVector, isFacingNear,
   RUN_SPEED, STATE_NAMES, TURN_RATE, turnStep, WALK_SPEED,
 } from '../core/character';
 import { CharacterAvatar } from './CharacterAvatar';
@@ -13,6 +14,7 @@ const { ccclass } = _decorator;
  * - Shift 按住奔跑；R 切换 跑/走 模式
  * - X 打坐 / 起身；移动会自动起身
  * - Q / E 原地转向
+ * - J 攻击，连按最多三段连击（横斩/回斩/突刺），攻击期间锁定移动
  */
 @ccclass('CharacterController')
 export class CharacterController extends Component {
@@ -23,6 +25,13 @@ export class CharacterController extends Component {
   private state: CharState = CharState.Idle;
   private runMode = false;
   private turnTimer = 0;
+
+  // 攻击与连击
+  private attacking = false;
+  private attackTime = 0;
+  private comboStep = 0;
+  private comboQueued = false;
+  private comboKeep = 0;
 
   private tmpPos = new Vec3();
 
@@ -40,25 +49,48 @@ export class CharacterController extends Component {
   /** 供 HUD 显示的状态文本 */
   get statusText(): string {
     const mode = this.runMode ? '跑' : '走';
-    return `状态：${STATE_NAMES[this.state]}　朝向：${DIR_NAMES[this.facing]}　模式：${mode}`;
+    const state = this.attacking
+      ? `${STATE_NAMES[this.state]}·${COMBO_NAMES[this.comboStep]}`
+      : STATE_NAMES[this.state];
+    return `状态：${state}　朝向：${DIR_NAMES[this.facing]}　模式：${mode}`;
   }
 
   private onKeyDown(e: EventKeyboard) {
     this.pressed.add(e.keyCode);
     switch (e.keyCode) {
+      case KeyCode.KEY_J:
+        this.tryAttack();
+        break;
       case KeyCode.KEY_X:
-        this.toggleSit();
+        if (!this.attacking) this.toggleSit();
         break;
       case KeyCode.KEY_R:
         this.runMode = !this.runMode;
         break;
       case KeyCode.KEY_Q:
-        this.turnInPlace(1);
+        if (!this.attacking) this.turnInPlace(1);
         break;
       case KeyCode.KEY_E:
-        this.turnInPlace(-1);
+        if (!this.attacking) this.turnInPlace(-1);
         break;
     }
+  }
+
+  private tryAttack() {
+    // 打坐时先起身再出招
+    if (this.state === CharState.Sit) this.state = CharState.Idle;
+
+    if (this.attacking) {
+      // 输入缓冲：攻击中按键即预约下一段连击
+      if (this.comboStep < COMBO_MAX - 1) this.comboQueued = true;
+      return;
+    }
+    // 收招窗口内再次出手 → 接续连击，否则从第一段开始
+    this.comboStep = this.comboKeep > 0 ? (this.comboStep + 1) % COMBO_MAX : 0;
+    this.attacking = true;
+    this.attackTime = 0;
+    this.comboQueued = false;
+    this.state = CharState.Attack;
   }
 
   private onKeyUp(e: EventKeyboard) {
@@ -92,6 +124,29 @@ export class CharacterController extends Component {
   }
 
   update(dt: number) {
+    if (this.comboKeep > 0) this.comboKeep -= dt;
+
+    // 攻击中：锁定移动，推进攻击动画与连击
+    if (this.attacking) {
+      this.attackTime += dt;
+      if (this.attackTime >= ATTACK_DUR) {
+        if (this.comboQueued && this.comboStep < COMBO_MAX - 1) {
+          this.comboStep++;
+          this.attackTime = 0;
+          this.comboQueued = false;
+        } else {
+          this.attacking = false;
+          this.state = CharState.Idle;
+          this.comboKeep = COMBO_RESET;
+        }
+      }
+      if (this.attacking) {
+        this.avatar.setPose(this.facing, CharState.Attack);
+        this.avatar.setAttackAnim(this.comboStep, Math.min(1, this.attackTime / ATTACK_DUR));
+        return;
+      }
+    }
+
     const v = this.inputVector();
     const moving = v.x !== 0 || v.y !== 0;
 

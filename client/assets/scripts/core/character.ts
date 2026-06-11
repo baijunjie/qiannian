@@ -34,6 +34,7 @@ export enum CharState {
   Walk = 'walk',
   Run = 'run',
   Sit = 'sit',
+  Attack = 'attack',
 }
 
 export const STATE_NAMES: Record<CharState, string> = {
@@ -41,7 +42,15 @@ export const STATE_NAMES: Record<CharState, string> = {
   [CharState.Walk]: '走路',
   [CharState.Run]: '奔跑',
   [CharState.Sit]: '打坐',
+  [CharState.Attack]: '攻击',
 };
+
+/** 攻击：单段时长（秒）与三段连击 */
+export const ATTACK_DUR = 0.32;
+export const COMBO_MAX = 3;
+/** 收招后保持连击计数的窗口（秒） */
+export const COMBO_RESET = 0.6;
+export const COMBO_NAMES = ['横斩', '回斩', '突刺'];
 
 /** 移动速度（像素/秒） */
 export const WALK_SPEED = 130;
