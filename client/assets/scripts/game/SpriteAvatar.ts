@@ -56,15 +56,16 @@ export class SpriteAvatar extends Component {
   private fxNode!: Node;
   private fxG!: Graphics;
   private sprites = {} as Record<LayerKey, Sprite>;
-  private frames: Record<LayerKey, SpriteFrame | null> = { armor: null, head: null, weapon: null };
+  private textures: Record<LayerKey, Texture2D | null> = { armor: null, head: null, weapon: null };
   private wanted: Record<LayerKey, string> = { armor: '', head: '', weapon: '' };
   private texCache = new Map<string, Texture2D>();
+  /** 帧缓存：sheet:row:col → SpriteFrame（整体替换 spriteFrame 才能可靠触发重绘） */
+  private sfCache = new Map<string, SpriteFrame>();
 
   private action: Action = 'idle';
   private dir: Dir8 = Dir8.S;
   private time = 0;
   private progress = 0;
-  private rectTmp = new Rect(0, 0, FRAME, FRAME);
 
   onLoad() {
     // 特效层（光环/朝向箭头），画在角色下方
@@ -116,7 +117,7 @@ export class SpriteAvatar extends Component {
     if (!sp) return; // onLoad 之前调用时，等 update 自然恢复
     if (!sheet) {
       sp.node.active = false;
-      this.frames[key] = null;
+      this.textures[key] = null;
       return;
     }
     sp.node.active = true;
@@ -136,10 +137,7 @@ export class SpriteAvatar extends Component {
   }
 
   private applyTexture(key: LayerKey, sheet: string, tex: Texture2D) {
-    const sf = new SpriteFrame();
-    sf.texture = tex;
-    this.frames[key] = sf;
-    this.sprites[key].spriteFrame = sf;
+    this.textures[key] = tex;
     this.applyFrame();
   }
 
@@ -154,11 +152,24 @@ export class SpriteAvatar extends Component {
   update(dt: number) {
     // setAppearance 早于 onLoad 调用时，补一次指派
     for (const key of LAYER_KEYS) {
-      if (this.wanted[key] && !this.frames[key]) this.assign(key, this.wanted[key]);
+      if (this.wanted[key] && !this.textures[key]) this.assign(key, this.wanted[key]);
     }
     this.time += dt;
     this.applyFrame();
     this.drawFx();
+  }
+
+  /** 取/建指定图集格的 SpriteFrame */
+  private frameFor(sheet: string, tex: Texture2D, row: number, col: number): SpriteFrame {
+    const id = `${sheet}:${row}:${col}`;
+    let sf = this.sfCache.get(id);
+    if (!sf) {
+      sf = new SpriteFrame();
+      sf.texture = tex;
+      sf.rect = new Rect(col * FRAME, row * FRAME, FRAME, FRAME);
+      this.sfCache.set(id, sf);
+    }
+    return sf;
   }
 
   /** 当前动作对应的图集列 */
@@ -180,13 +191,12 @@ export class SpriteAvatar extends Component {
   private applyFrame() {
     const row = ROW_OF_DIR[this.dir];
     const col = this.frameCol();
-    this.rectTmp.x = col * FRAME;
-    this.rectTmp.y = row * FRAME;
-    this.rectTmp.width = FRAME;
-    this.rectTmp.height = FRAME;
     for (const key of LAYER_KEYS) {
-      const sf = this.frames[key];
-      if (sf) sf.rect = this.rectTmp;
+      const tex = this.textures[key];
+      if (!tex) continue;
+      const sf = this.frameFor(this.wanted[key], tex, row, col);
+      const sp = this.sprites[key];
+      if (sp.spriteFrame !== sf) sp.spriteFrame = sf;
     }
     // 武器层序按朝向调整（armor/head 维持先后，weapon 插入对应层位）
     const wl = WEAPON_LAYER_BY_ROW[row];
