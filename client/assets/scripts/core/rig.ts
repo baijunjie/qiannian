@@ -7,6 +7,11 @@ import { Dir8, dirToVector } from './character';
 /** 渲染动作（与逻辑状态解耦：attack 按连击段展开） */
 export type Action = 'idle' | 'walk' | 'run' | 'sit' | 'attack1' | 'attack2' | 'attack3';
 
+/** 角色渲染器统一接口：逻辑层只依赖它，矢量/序列帧实现可互换 */
+export interface IAvatarView {
+  setPose(action: Action, dir: number, progress?: number): void;
+}
+
 export interface AttackPose {
   step: number;       // 0 横斩 / 1 回斩 / 2 突刺
   p: number;          // 进度 0~1

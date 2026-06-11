@@ -6,6 +6,7 @@ import { HAIR_STYLES, makeAppearance, OUTFITS, WEAPONS } from '../core/appearanc
 import { AvatarRenderer } from './AvatarRenderer';
 import { CharacterController } from './CharacterController';
 import { GridFloor } from './GridFloor';
+import { SpriteAvatar } from './SpriteAvatar';
 
 const { ccclass } = _decorator;
 
@@ -23,9 +24,13 @@ export class GameRoot extends Component {
   private world!: Node;
   private charNode!: Node;
   private controller!: CharacterController;
-  private renderer!: AvatarRenderer;
   private grid!: GridFloor;
   private statusLabel!: Label;
+
+  private procAvatar!: AvatarRenderer;
+  private spriteAvatar!: SpriteAvatar;
+  /** true = 序列帧渲染（Isometric Hero 素材），false = 程序化矢量 */
+  private useSprite = true;
 
   // 外观索引（1/2/3 键循环切换）
   private hairIdx = 0;
@@ -59,17 +64,19 @@ export class GameRoot extends Component {
     // 世界容器：反向移动以实现"相机跟随角色"
     this.world = this.makeNode('World', canvasNode);
 
-    // 角色
+    // 角色（双渲染器：序列帧 / 程序化矢量，4 键切换）
     this.charNode = this.makeNode('Player', this.world);
-    this.renderer = this.charNode.addComponent(AvatarRenderer)!;
+    this.procAvatar = this.charNode.addComponent(AvatarRenderer)!;
+    this.spriteAvatar = this.charNode.addComponent(SpriteAvatar)!;
     this.controller = this.charNode.addComponent(CharacterController)!;
-    this.renderer.setAppearance(makeAppearance(this.hairIdx, this.outfitIdx, this.weaponIdx));
+    this.applyAppearance();
+    this.applyRendererChoice();
 
     // 状态与操作提示
     this.statusLabel = this.makeCornerLabel(canvasNode, true);
     const hint = this.makeCornerLabel(canvasNode, false);
     hint.string = 'W A S D / 方向键 移动　Shift 奔跑　R 跑/走　J 攻击（三段连击）　X 打坐　Q / E 原地转向\n'
-      + '换装：1 发型　2 衣装　3 武器';
+      + '换装：1 发型/头部　2 衣装　3 武器　·　4 切换渲染器（序列帧/矢量）';
 
     input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
     this.syncViewport();
@@ -83,15 +90,30 @@ export class GameRoot extends Component {
     if (e.keyCode === KeyCode.DIGIT_1) this.hairIdx++;
     else if (e.keyCode === KeyCode.DIGIT_2) this.outfitIdx++;
     else if (e.keyCode === KeyCode.DIGIT_3) this.weaponIdx++;
+    else if (e.keyCode === KeyCode.DIGIT_4) { this.useSprite = !this.useSprite; this.applyRendererChoice(); return; }
     else return;
-    this.renderer.setAppearance(makeAppearance(this.hairIdx, this.outfitIdx, this.weaponIdx));
+    this.applyAppearance();
+  }
+
+  /** 外观同步到两个渲染器（切换渲染器时无需重新设置） */
+  private applyAppearance() {
+    const a = makeAppearance(this.hairIdx, this.outfitIdx, this.weaponIdx);
+    this.procAvatar.setAppearance(a);
+    this.spriteAvatar.setAppearance(a);
+  }
+
+  private applyRendererChoice() {
+    this.procAvatar.enabled = !this.useSprite;
+    this.spriteAvatar.enabled = this.useSprite;
+    this.controller.avatar = this.useSprite ? this.spriteAvatar : this.procAvatar;
   }
 
   private get appearanceText(): string {
     const hair = HAIR_STYLES[this.hairIdx % HAIR_STYLES.length].name;
     const outfit = OUTFITS[this.outfitIdx % OUTFITS.length].name;
     const weapon = WEAPONS[this.weaponIdx % WEAPONS.length].name;
-    return `外观：${hair} · ${outfit} · ${weapon}`;
+    const mode = this.useSprite ? '序列帧' : '矢量';
+    return `外观：${hair} · ${outfit} · ${weapon}　渲染：${mode}`;
   }
 
   /** 画布与相机按固定视野高度适配当前窗口比例 */

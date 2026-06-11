@@ -4,7 +4,7 @@ import {
   Dir8, DIR_NAMES, dirFromVector, isFacingNear,
   RUN_SPEED, STATE_NAMES, TURN_RATE, turnStep, WALK_SPEED,
 } from '../core/character';
-import { Action } from '../core/rig';
+import { Action, IAvatarView } from '../core/rig';
 import { AvatarRenderer } from './AvatarRenderer';
 
 const { ccclass } = _decorator;
@@ -19,7 +19,8 @@ const { ccclass } = _decorator;
  */
 @ccclass('CharacterController')
 export class CharacterController extends Component {
-  private avatar!: AvatarRenderer;
+  /** 渲染器（矢量/序列帧可互换），由 GameRoot 指派 */
+  avatar!: IAvatarView;
   private pressed = new Set<KeyCode>();
 
   private facing: Dir8 = Dir8.S;
@@ -37,7 +38,7 @@ export class CharacterController extends Component {
   private tmpPos = new Vec3();
 
   onLoad() {
-    this.avatar = this.getComponent(AvatarRenderer)!;
+    if (!this.avatar) this.avatar = this.getComponent(AvatarRenderer)!;
     input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
     input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
   }

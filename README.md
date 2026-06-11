@@ -43,6 +43,10 @@ qiannian/
 1. 按 [docs/SETUP.md](docs/SETUP.md) 安装 Cocos Creator 3.8.x 并打开 `client/` 项目
 2. 打开场景 `assets/scenes/main.scene`，点击预览即可
 
+## 资源署名
+
+角色序列帧素材来自 Clint Bellanger 的 [Isometric Hero](https://opengameart.org/content/isometric-hero-and-heroine)（CC-BY 3.0），详见 [CREDITS.md](CREDITS.md)。
+
 ## 路线图
 
 - [x] 角色控制演示：八方向身位、转向、站立 / 走路 / 奔跑 / 打坐

@@ -18,6 +18,8 @@ export interface Appearance {
   parts: Partial<Record<Slot, string>>;
   /** 调色板：hex 颜色，渲染层负责转换 */
   palette: Record<string, string>;
+  /** 衣装方案 id（序列帧渲染器按它选整套贴图；程序化渲染器走 palette） */
+  outfit?: string;
 }
 
 /* ---------------- 分层顺序表 ----------------
@@ -117,6 +119,7 @@ export const BASE_PALETTE: Record<string, string> = {
 };
 
 export function makeAppearance(hairIdx: number, outfitIdx: number, weaponIdx: number): Appearance {
+  const outfit = OUTFITS[outfitIdx % OUTFITS.length];
   return {
     parts: {
       [Slot.Legs]: 'legs_boots',
@@ -126,6 +129,7 @@ export function makeAppearance(hairIdx: number, outfitIdx: number, weaponIdx: nu
       [Slot.Hair]: HAIR_STYLES[hairIdx % HAIR_STYLES.length].id,
       [Slot.Weapon]: WEAPONS[weaponIdx % WEAPONS.length].id,
     },
-    palette: { ...BASE_PALETTE, ...OUTFITS[outfitIdx % OUTFITS.length].palette },
+    palette: { ...BASE_PALETTE, ...outfit.palette },
+    outfit: outfit.id,
   };
 }

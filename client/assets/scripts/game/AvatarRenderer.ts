@@ -33,6 +33,10 @@ export class AvatarRenderer extends Component {
     this.applyPalette();
   }
 
+  onDisable() {
+    this.g.clear();
+  }
+
   setAppearance(a: Appearance) {
     this.appearance = a;
     this.applyPalette();
