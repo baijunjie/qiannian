@@ -85,6 +85,9 @@ export const HAIR_STYLES: PartOption[] = [
 export const WEAPONS: PartOption[] = [
   { id: 'weapon_jian', name: '长剑' },
   { id: 'weapon_dao', name: '单刀' },
+  { id: 'weapon_dagger', name: '匕首' },
+  { id: 'weapon_greatsword', name: '巨剑' },
+  { id: 'weapon_staff', name: '长棍' },
   { id: 'weapon_none', name: '空手' },
 ];
 

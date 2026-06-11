@@ -22,16 +22,25 @@ const ROW_OF_DIR = [4, 3, 2, 1, 0, 7, 6, 5];
  */
 const WEAPON_LAYER_BY_ROW = [0, 0, 2, 2, 2, 1, 0, 0];
 
-// 外观 → 贴图名映射
-const OUTFIT_SHEET: Record<string, string> = {
-  qingshan: 'clothes', baiyi: 'leather_armor', xuanyi: 'steel_armor', jiangyi: 'clothes',
+// 外观 → 贴图名映射（tint：素材不足时用着色区分）
+const OUTFIT_SHEET: Record<string, { sheet: string; tint?: Color }> = {
+  qingshan: { sheet: 'clothes' },
+  baiyi: { sheet: 'leather_armor' },
+  xuanyi: { sheet: 'steel_armor' },
+  jiangyi: { sheet: 'clothes', tint: new Color(235, 130, 110, 255) },
 };
 const HAIR_SHEET: Record<string, string> = {
   hair_topknot: 'male_head1', hair_ponytail: 'male_head2', hair_scarf: 'male_head3',
 };
 const WEAPON_SHEET: Record<string, string> = {
-  weapon_jian: 'longsword', weapon_dao: 'shortsword', weapon_none: '',
+  weapon_jian: 'longsword',
+  weapon_dao: 'shortsword',
+  weapon_dagger: 'dagger',
+  weapon_greatsword: 'greatsword',
+  weapon_staff: 'staff',
+  weapon_none: '',
 };
+const WHITE = new Color(255, 255, 255, 255);
 
 // Flare 动画定义（hero.txt）：列 = 帧
 const STANCE_SEQ = [0, 1, 2, 3, 2, 1]; // back_forth
@@ -66,6 +75,8 @@ export class SpriteAvatar extends Component {
   private dir: Dir8 = Dir8.S;
   private time = 0;
   private progress = 0;
+  private armorTint: Color = WHITE;
+  private appliedTint: Color | null = null;
 
   onLoad() {
     // 特效层（光环/朝向箭头），画在角色下方
@@ -106,7 +117,9 @@ export class SpriteAvatar extends Component {
   }
 
   setAppearance(a: Appearance) {
-    this.assign('armor', OUTFIT_SHEET[a.outfit ?? 'qingshan'] ?? 'clothes');
+    const outfit = OUTFIT_SHEET[a.outfit ?? 'qingshan'] ?? OUTFIT_SHEET.qingshan;
+    this.armorTint = outfit.tint ?? WHITE;
+    this.assign('armor', outfit.sheet);
     this.assign('head', HAIR_SHEET[a.parts.hair ?? ''] ?? 'male_head1');
     this.assign('weapon', WEAPON_SHEET[a.parts.weapon ?? ''] ?? '');
   }
@@ -197,6 +210,11 @@ export class SpriteAvatar extends Component {
       const sf = this.frameFor(this.wanted[key], tex, row, col);
       const sp = this.sprites[key];
       if (sp.spriteFrame !== sf) sp.spriteFrame = sf;
+    }
+    // 衣装着色（素材重复时用 tint 区分；tint 实例稳定，引用比较即可）
+    if (this.sprites.armor && this.appliedTint !== this.armorTint) {
+      this.sprites.armor.color = this.armorTint;
+      this.appliedTint = this.armorTint;
     }
     // 武器层序按朝向调整（armor/head 维持先后，weapon 插入对应层位）
     const wl = WEAPON_LAYER_BY_ROW[row];

@@ -17,4 +17,8 @@ export const PART_PAINTERS: Record<string, PartPainter> = {
   weapon_jian,
   weapon_dao,
   weapon_none,
+  // 程序化矢量模式暂无专属画笔的武器 → 复用近似画笔（序列帧模式有独立贴图）
+  weapon_dagger: weapon_dao,
+  weapon_greatsword: weapon_jian,
+  weapon_staff: weapon_none,
 };
