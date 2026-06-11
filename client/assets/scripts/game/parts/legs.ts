@@ -8,11 +8,12 @@ export const legs_boots: PartPainter = {
     g.lineWidth = 6;
     const topY = pose.beltY - 20;
     if (pose.attack) {
-      // 出招弓步
-      g.moveTo(-5, topY);
+      // 出招弓步：双脚钉地，髋部随重心前后移动
+      const hip = pose.lean * 0.5;
+      g.moveTo(-5 + hip, topY);
       g.lineTo(-7 - pose.fx * 2.5, 1);
       g.stroke();
-      g.moveTo(5, topY);
+      g.moveTo(5 + hip, topY);
       g.lineTo(7 + pose.fx * 2.5, 1);
       g.stroke();
       return;

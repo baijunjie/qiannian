@@ -123,7 +123,7 @@ export const clothes_robe: PartPainter = {
       g.fill();
       return;
     }
-    const swing = pose.attack ? -9 : pose.armSwing;
+    const swing = pose.armSwing;
     const sx = -9 + lean;
     const ex = -13 + lean + pose.fx * -swing * 0.8;
     const ey = shoulderY - 24 + pose.fy * -swing * 0.3;

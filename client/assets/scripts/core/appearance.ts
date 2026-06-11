@@ -27,23 +27,28 @@ export interface Appearance {
 export type LayerGroup = 'front' | 'side' | 'back' | 'sit';
 
 export const LAYER_ORDER: Record<LayerGroup, string[]> = {
-  // 面向镜头：背上的剑被身体遮挡（最底层），手中的剑最上
+  // 挥击中的武器按剑指方向动态分层：指向画面上方（远端）走 activeBehind，
+  // 指向下方（近端）走 active —— 由武器画笔自行判断，两个 pass 都登记。
+  // 面向镜头：背上的剑被身体遮挡（最底层），手中的剑视角动态
   front: [
     'hair:ribbon', 'weapon:sheathed',
-    'legs:main', 'clothes:skirt', 'clothes:armFar', 'clothes:torso', 'clothes:armNear',
+    'legs:main', 'clothes:skirt', 'weapon:activeBehind',
+    'clothes:armFar', 'clothes:torso', 'clothes:armNear',
     'head:main', 'face:main', 'hair:main',
     'weapon:active',
   ],
   side: [
     'hair:ribbon', 'weapon:sheathed',
-    'legs:main', 'clothes:skirt', 'clothes:armFar', 'clothes:torso', 'clothes:armNear',
+    'legs:main', 'clothes:skirt', 'weapon:activeBehind',
+    'clothes:armFar', 'clothes:torso', 'clothes:armNear',
     'head:main', 'face:main', 'hair:main',
     'weapon:active',
   ],
-  // 背向镜头：背上的剑离镜头最近，压在袍与后脑上
+  // 背向镜头：背上的空鞘离镜头最近，压在袍与后脑上
   back: [
     'hair:ribbon',
-    'legs:main', 'clothes:skirt', 'clothes:armFar', 'clothes:torso', 'clothes:armNear',
+    'legs:main', 'clothes:skirt', 'weapon:activeBehind',
+    'clothes:armFar', 'clothes:torso', 'clothes:armNear',
     'head:main', 'face:main', 'hair:main',
     'weapon:sheathed', 'weapon:active',
   ],
